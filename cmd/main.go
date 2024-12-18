@@ -1,8 +1,9 @@
 package main
 
 import (
-	"remember-me/views"
+	"remember-me/internal/web/views"
 	"strconv"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -94,6 +95,8 @@ func main() {
 	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Renderer = views.NewTemplate()
+	e.Static("/images", "images")
+	e.Static("/css", "css")
 
 	page := newPage()
 
@@ -126,15 +129,21 @@ func main() {
 	})
 
 	e.DELETE("/users/:id", func(c echo.Context) error {
+		time.Sleep(1 * time.Second)
 		idStr := c.Param("id")
 		id, err := strconv.Atoi(idStr)
 		if err != nil {
 			return c.String(400, "Invalid id")
 		}
 
-		page.Data.Users = append(page.Data.Users, user)
+		index := page.Data.indexOf(id)
+		if index == -1 {
+			return c.String(404, "User not found")
+		}
 
-		return c.Render(200, "index", page)
+		page.Data.Users = append(page.Data.Users[:index], page.Data.Users[index+1:]...)
+
+		return c.NoContent(200)
 	})
 
 	// Route pour le traitement du formulaire de connexion (POST)
