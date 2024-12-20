@@ -1,45 +1,50 @@
 package main
 
 import (
-	"remember-me/internal/web/views"
-	"strconv"
-	"time"
-
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"html/template"
+	"io"
+	"remember-me/internal/adapters/handlers/http"
+	"remember-me/internal/adapters/repositories/postgres"
+	"remember-me/internal/domain/models"
+	"remember-me/internal/domain/usecases"
 )
 
-type DB struct{}
+type Templates struct {
+	templates *template.Template
+}
+
+// Implement e.Renderer interface
+func (t *Templates) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
+	return t.templates.ExecuteTemplate(w, name, data)
+}
+
+func NewTemplate() *Templates {
+	return &Templates{
+		templates: template.Must(template.ParseGlob("cmd/web/views/*.html")),
+	}
+}
 
 var id int = 0
 
-type User struct {
-	Id       int
-	Username string
-	Email    string
-	Password string
-}
-
-func NewUser(username, email, password string) User {
+func NewUser(email, password string) models.User {
 	id++
-	return User{
-		Id:       id,
-		Username: username,
+	return models.User{
+		ID:       id,
 		Email:    email,
 		Password: password,
 	}
 }
 
-type Users = []User
-
 type Data struct {
-	Users Users
+	Users models.Users
 }
 
-// ??????????????????????
 func (d *Data) indexOf(id int) int {
 	for i, user := range d.Users {
-		if user.Id == id {
+		if user.ID == id {
 			return i
 		}
 	}
@@ -53,99 +58,63 @@ func (d *Data) hasEmail(email string) bool {
 		}
 	}
 	return false
-
-}
-
-func newData() Data {
-	return Data{
-		Users: []User{
-			NewUser("John", "j@gmail.com", "apxmcrz423"),
-			NewUser("Alice", "a@gmail.com", "alicejisd90"),
-			NewUser("Bob", "b@gmail.com", "bob&&isd0"),
-		},
-	}
-}
-
-type FormData struct {
-	Values map[string]string
-	Errors map[string]string
-}
-
-func newFormData() FormData {
-	return FormData{
-		Values: make(map[string]string),
-		Errors: make(map[string]string),
-	}
-}
-
-type Page struct {
-	Data Data
-	Form FormData
-}
-
-func newPage() Page {
-	return Page{
-		Data: newData(),
-		Form: newFormData(),
-	}
 }
 
 func main() {
+
 	// Echo instance
 	e := echo.New()
 	e.Use(middleware.Logger())
-	e.Renderer = views.NewTemplate()
-	e.Static("/images", "images")
-	e.Static("/css", "css")
+	e.Renderer = NewTemplate()
+	e.Static("/images", "/cmd/web/assets/images")
+	e.Static("/css", "/cmd/web/assets/css")
 
-	page := newPage()
+	db := postgres.ConnectDb()
+	db = db.Debug()
+	// User part
+	userStore := postgres.NewUserGORMRepository(db)
+	userService := usecases.NewUserService(userStore)
+	http.InitRoutes(e, userService)
+
+	userHandler := http.NewUserHandler(userService)
+
+	users := []models.User{
+		NewUser("j@gmail.com", "apxmcrz423"),
+		NewUser("a@gmail.com", "alicejisd90"),
+		NewUser("b@gmail.com", "bob&&isd0"),
+	}
+
+	for _, user := range users {
+		err := userStore.CreateUser(&user)
+		if err != nil {
+			fmt.Printf("%s", err)
+		}
+	}
 
 	// Route => handler
 	e.GET("/", func(c echo.Context) error {
-		return c.Render(200, "index", page)
+		return userHandler.GetUsers(c)
 	})
 
-	e.POST("/users", func(c echo.Context) error {
-		email := c.FormValue("email")
-		username := c.FormValue("username")
-		password := c.FormValue("password")
+	e.POST("/registration", func(c echo.Context) error {
 
-		if page.Data.hasEmail(email) {
+		/*if userHandler.hasEmail(email) {
 			formData := newFormData()
-			formData.Values["username"] = username
 			formData.Values["email"] = email
 			formData.Values["password"] = password
 			formData.Errors["email"] = "Email already exists"
 
 			return c.Render(422, "loginForm", formData)
-		}
+		}*/
 
-		user := NewUser(username, email, password)
-
-		page.Data.Users = append(page.Data.Users, user)
-
-		c.Render(200, "loginForm", newFormData())
-		return c.Render(200, "oob-user", user)
+		/*return c.Render(200, "oob-user", user)*/
+		return userHandler.PostUser(c)
 	})
 
 	e.DELETE("/users/:id", func(c echo.Context) error {
-		time.Sleep(1 * time.Second)
-		idStr := c.Param("id")
-		id, err := strconv.Atoi(idStr)
-		if err != nil {
-			return c.String(400, "Invalid id")
-		}
-
-		index := page.Data.indexOf(id)
-		if index == -1 {
-			return c.String(404, "User not found")
-		}
-
-		page.Data.Users = append(page.Data.Users[:index], page.Data.Users[index+1:]...)
-
-		return c.NoContent(200)
+		return userHandler.DeleteUser(c)
 	})
-
+	
 	// Route pour le traitement du formulaire de connexion (POST)
 	/* e.POST("/login", handlers.HandleLogin) */
 
