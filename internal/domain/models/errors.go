@@ -9,4 +9,5 @@ var (
 	ErrShortPassword   = errors.New("password shorter than 6 characters")
 	ErrLongPassword    = errors.New("password longer than 72 characters")
 	ErrInvalidEmail    = errors.New("invalid email address")
+	ErrPasswordEq      = errors.New("passwords are not equal")
 )

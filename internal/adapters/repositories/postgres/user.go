@@ -41,12 +41,14 @@ func (r *UserGORMRepository) GetUserByID(id int) (models.User, error) {
 func (r *UserGORMRepository) GetUserByEmail(email string) (models.User, error) {
 	var user models.User
 
-	req := r.db.First(&user, email)
-	if req.Error != nil {
-		// Use fmt.Errorf for error formatting and return the zero value of models.User.
-		return models.User{}, fmt.Errorf("user not found: %v", req.Error)
-	}
+	req := r.db.First(&user, "email = ?", email)
 
+	if req.Error != nil {
+		if errors.Is(req.Error, gorm.ErrRecordNotFound) {
+			return user, fmt.Errorf("user with email %s not found", email)
+		}
+		return user, fmt.Errorf("error fetching user: %v", req.Error)
+	}
 	return user, nil
 }
 
@@ -84,16 +86,14 @@ func (r *UserGORMRepository) UpdateUser(id int, user *models.User) error {
 	return nil
 }
 
-func (r *UserGORMRepository) ExistsByEmail(email string) (bool, error) {
-	_, err := r.GetUserByEmail(email)
+func (r *UserGORMRepository) ExistsByEmail(email string) bool {
+	var user models.User
+	req := r.db.First(&user, "email = ?", email)
 
-	if err != nil {
-		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			return false, err
+	if req.Error != nil {
+		if errors.Is(req.Error, gorm.ErrRecordNotFound) {
+			return false
 		}
-
-		return false, nil
 	}
-
-	return true, nil
+	return true
 }

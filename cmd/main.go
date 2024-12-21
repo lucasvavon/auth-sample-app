@@ -22,8 +22,13 @@ func (t *Templates) Render(w io.Writer, name string, data interface{}, c echo.Co
 }
 
 func NewTemplate() *Templates {
+
+	tmpl, err := template.ParseGlob("cmd/web/views/*.html")
+	if err != nil {
+		fmt.Printf("Error loading templates: %v", err)
+	}
 	return &Templates{
-		templates: template.Must(template.ParseGlob("cmd/web/views/*.html")),
+		templates: tmpl,
 	}
 }
 
@@ -68,6 +73,8 @@ func main() {
 	e.Renderer = NewTemplate()
 	e.Static("/images", "/cmd/web/assets/images")
 	e.Static("/css", "/cmd/web/assets/css")
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
 
 	db := postgres.ConnectDb()
 	db = db.Debug()
@@ -92,29 +99,22 @@ func main() {
 	}
 
 	// Route => handler
-	e.GET("/", func(c echo.Context) error {
+	e.GET("/registration", func(c echo.Context) error {
+		return c.Render(200, "index", nil)
+	})
+
+	e.GET("/login", func(c echo.Context) error {
 		return userHandler.GetUsers(c)
 	})
 
 	e.POST("/registration", func(c echo.Context) error {
-
-		/*if userHandler.hasEmail(email) {
-			formData := newFormData()
-			formData.Values["email"] = email
-			formData.Values["password"] = password
-			formData.Errors["email"] = "Email already exists"
-
-			return c.Render(422, "loginForm", formData)
-		}*/
-
-		/*return c.Render(200, "oob-user", user)*/
 		return userHandler.PostUser(c)
 	})
 
 	e.DELETE("/users/:id", func(c echo.Context) error {
 		return userHandler.DeleteUser(c)
 	})
-	
+
 	// Route pour le traitement du formulaire de connexion (POST)
 	/* e.POST("/login", handlers.HandleLogin) */
 

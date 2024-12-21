@@ -16,8 +16,8 @@
     <h1 class="max-w-sm mx-auto text-xl mb-10 font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
         Create an account
     </h1>
-    <form class="max-w-sm mx-auto" id="registration" hx-post="/registration" hx-target="#users" hx-swap="outerHTML"
-          hx-ext="json-enc">
+    <form class="max-w-sm mx-auto" id="registration" hx-post="/registration" hx-target="#error"
+          hx-swap="innerHTML">
         <div class="mb-5">
             <label for="email" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your email</label>
             <input type="email" name="email" id="email"
@@ -37,6 +37,7 @@
                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-orange-600 focus:border-orange-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                    required>
         </div>
+        {{ template "error" . }}
         <div class="flex items-start mb-5">
             <div class="flex items-center h-5">
                 <input id="terms" aria-describedby="terms" type="checkbox"
@@ -60,58 +61,41 @@
         </p>
     </form>
 </div>
-<hr/>
-{{ template "users" . }}
 </body>
 <script>
     document.addEventListener("DOMContentLoaded", (event) => {
         document.body.addEventListener('htmx:beforeSwap', function (e) {
             if (e.detail.xhr.status == 422) {
+                document.getElementById("error-block").style.display = "flex"
                 e.detail.shouldSwap = true;
                 e.detail.isError = false;
+            }
+            if (e.detail.xhr.status == 200) {
+                document.getElementById("error-block").style.display = "none"
             }
         })
     })
 </script>
-
 </html>
-{{ end }}
-
-{{ block "users" . }}
-<ul id="users" class="p-5 max-w-sm mx-auto space-y-1 text-gray-500 list-disc list-inside dark:text-gray-400">
-    {{ range . }}
-    {{ template "user" . }}
-    {{ end }}
-</ul>
-{{ end }}
-
-{{ block "user" . }}
-<li id="user-{{ .ID }}" class="flex items-center">
-    <div
-            hx-indicator="#ci-{{ .ID }}"
-            hx-target="#user-{{ .ID }}"
-            hx-swap="outerHTML"
-            hx-delete="/users/{{ .ID }}"
-            style="cursor: pointer;">
-        <svg class="w-3.5 h-3.5 me-2 text-red-500 dark:text-red-400 flex-shrink-0" aria-hidden="true"
-             xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"/>
-        </svg>
-
-    </div>
-    <span>{{ .Email }} - {{ .Password }}</span>
-</li>
-
-{{ end }}
-
-{{ block "oob-user" . }}
-<div id="oob-users" hx-swap-oob="afterbegin">
-    {{ template "user" . }}
-</div>
 {{ end }}
 
 {{ block "loader" . }}
 <div id="loader" class="htmx-indicator">
     <img alt="loading" width="50" src="/images/loader.svg"/>
+</div>
+{{ end }}
+
+{{ block "error" . }}
+<div id="error-block"
+     class="hidden items-center p-4 mb-4 text-sm text-red-800 border border-red-300 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400 dark:border-red-800"
+     role="alert">
+    <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+         fill="currentColor" viewBox="0 0 20 20">
+        <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+    </svg>
+    <span class="sr-only">Info</span>
+    <div>
+        <span id="error" hx-swap-oob="true"></span>
+    </div>
 </div>
 {{ end }}

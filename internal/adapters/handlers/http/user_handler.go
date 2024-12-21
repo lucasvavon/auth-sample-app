@@ -1,8 +1,8 @@
 package http
 
 import (
-	"fmt"
 	"github.com/labstack/echo/v4"
+	"net/http"
 	"remember-me/internal/domain/models"
 	"remember-me/internal/domain/usecases"
 	"strconv"
@@ -22,11 +22,10 @@ func (uh *UserHandler) GetUsers(c echo.Context) error {
 	users, err := uh.us.GetUsers()
 
 	if err != nil {
-		fmt.Println("Erreur lors de la récupération des utilisateurs:", err)
 		return c.String(404, "Not Found")
 	}
 
-	return c.Render(200, "index", users)
+	return c.Render(200, "login", users)
 }
 
 func (uh *UserHandler) GetUser(c echo.Context) error {
@@ -43,25 +42,21 @@ func (uh *UserHandler) GetUser(c echo.Context) error {
 }
 
 func (uh *UserHandler) PostUser(c echo.Context) error {
-
-	var u models.UserDTO
+	u := models.UserDTO{}
 
 	if err := c.Bind(&u); err != nil {
-		return c.String(400, "Invalid request body")
+		return c.String(500, err.Error())
 	}
 
-	user := models.User{
-		Email:    u.Email,
-		Password: u.Password,
-	}
-
-	err := uh.us.CreateUser(&user)
+	err := uh.us.CreateUser(&u)
 	if err != nil {
-		return c.String(500, "Error creating user")
+		return c.String(422, err.Error())
 
 	}
-
-	return c.Render(200, "user", user)
+	if c.Request().Header.Get("HX-Request") != "" {
+		c.Response().Header().Set("HX-Redirect", "/login")
+	}
+	return c.NoContent(http.StatusOK)
 }
 
 func (uh *UserHandler) DeleteUser(c echo.Context) error {
@@ -77,22 +72,19 @@ func (uh *UserHandler) DeleteUser(c echo.Context) error {
 }
 
 func (uh *UserHandler) UpdateUser(c echo.Context) error {
-	var updateUser models.User
+	var updateUser models.UserDTO
 	id, _ := strconv.Atoi(c.Param("id"))
 
-	// Binding.
 	if err := c.Bind(&updateUser); err != nil {
-		return c.String(400, "Bad Request")
+		return c.String(500, err.Error())
 	}
 
 	// Call the UserService to update the user.
 	err := uh.us.UpdateUser(id, &updateUser)
 	if err != nil {
 		// Handle errors, e.g., user not found or validation errors.
-		return c.String(500, "Internal Error")
-
+		return c.String(422, err.Error())
 	}
 
-	// Respond with success.
 	return c.Render(200, "updateUser", updateUser)
 }
