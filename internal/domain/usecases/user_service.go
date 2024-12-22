@@ -3,7 +3,6 @@ package usecases
 import (
 	"errors"
 	"golang.org/x/crypto/bcrypt"
-	"remember-me/internal/adapters/repositories/postgres"
 	"remember-me/internal/domain/models"
 	"remember-me/internal/domain/ports"
 )
@@ -12,7 +11,7 @@ type UserService struct {
 	ur ports.UserRepository
 }
 
-func NewUserService(ur *postgres.UserGORMRepository) *UserService {
+func NewUserService(ur ports.UserRepository) *UserService {
 	return &UserService{ur: ur}
 }
 
