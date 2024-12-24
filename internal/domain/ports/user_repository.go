@@ -12,5 +12,4 @@ type UserRepository interface {
 	UpdateUser(id int, user *models.User) error
 	DeleteUser(id int) error
 	ExistsByEmail(email string) bool
-	// Login(email string, password string) (models.User, error)
 }

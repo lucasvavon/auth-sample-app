@@ -1,0 +1,20 @@
+{{ define "content" }}
+    <p>Footer</p>
+{{ end }}
+
+{{ define "script" }}
+    <script>
+        document.addEventListener("DOMContentLoaded", (event) => {
+            document.body.addEventListener('htmx:beforeSwap', function (e) {
+                if (e.detail.xhr.status >= 400 && e.detail.xhr.status <= 500) {
+                    document.getElementById("error-block").style.display = "flex"
+                    e.detail.shouldSwap = true;
+                    e.detail.isError = false;
+                }
+                if (e.detail.xhr.status == 200) {
+                    document.getElementById("error-block").style.display = "none"
+                }
+            })
+        })
+    </script>
+{{ end }}

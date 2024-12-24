@@ -1,4 +1,4 @@
-package postgres
+package pg
 
 import (
 	"errors"
@@ -7,15 +7,15 @@ import (
 	"remember-me/internal/domain/models"
 )
 
-type UserGORMRepository struct {
+type GormUserRepository struct {
 	db *gorm.DB
 }
 
-func NewUserGORMRepository(db *gorm.DB) *UserGORMRepository {
-	return &UserGORMRepository{db: db}
+func NewGormUserRepository(db *gorm.DB) *GormUserRepository {
+	return &GormUserRepository{db}
 }
 
-func (r *UserGORMRepository) GetUsers() (models.Users, error) {
+func (r *GormUserRepository) GetUsers() (models.Users, error) {
 	var users models.Users
 
 	req := r.db.Find(&users)
@@ -26,7 +26,7 @@ func (r *UserGORMRepository) GetUsers() (models.Users, error) {
 	return users, nil
 }
 
-func (r *UserGORMRepository) GetUserByID(id int) (models.User, error) {
+func (r *GormUserRepository) GetUserByID(id int) (models.User, error) {
 	var user models.User
 
 	req := r.db.First(&user, id)
@@ -38,7 +38,7 @@ func (r *UserGORMRepository) GetUserByID(id int) (models.User, error) {
 	return user, nil
 }
 
-func (r *UserGORMRepository) GetUserByEmail(email string) (models.User, error) {
+func (r *GormUserRepository) GetUserByEmail(email string) (models.User, error) {
 	var user models.User
 
 	req := r.db.First(&user, "email = ?", email)
@@ -52,7 +52,7 @@ func (r *UserGORMRepository) GetUserByEmail(email string) (models.User, error) {
 	return user, nil
 }
 
-func (r *UserGORMRepository) CreateUser(user *models.User) error {
+func (r *GormUserRepository) CreateUser(user *models.User) error {
 	req := r.db.Create(&user)
 
 	if req.Error != nil {
@@ -62,7 +62,7 @@ func (r *UserGORMRepository) CreateUser(user *models.User) error {
 	return nil
 }
 
-func (r *UserGORMRepository) DeleteUser(id int) error {
+func (r *GormUserRepository) DeleteUser(id int) error {
 	var user models.User
 
 	req := r.db.Unscoped().Delete(&user, &id)
@@ -74,7 +74,7 @@ func (r *UserGORMRepository) DeleteUser(id int) error {
 	return nil
 }
 
-func (r *UserGORMRepository) UpdateUser(id int, user *models.User) error {
+func (r *GormUserRepository) UpdateUser(id int, user *models.User) error {
 	user.ID = id
 
 	req := r.db.Save(user)
@@ -86,14 +86,10 @@ func (r *UserGORMRepository) UpdateUser(id int, user *models.User) error {
 	return nil
 }
 
-func (r *UserGORMRepository) ExistsByEmail(email string) bool {
+func (r *GormUserRepository) ExistsByEmail(email string) bool {
 	var user models.User
+
 	req := r.db.First(&user, "email = ?", email)
 
-	if req.Error != nil {
-		if errors.Is(req.Error, gorm.ErrRecordNotFound) {
-			return false
-		}
-	}
-	return true
+	return req.RowsAffected > 0
 }

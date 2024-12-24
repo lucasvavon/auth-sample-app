@@ -1,10 +1,10 @@
-package usecases
+package services
 
 import (
-	"errors"
 	"golang.org/x/crypto/bcrypt"
 	"remember-me/internal/domain/models"
 	"remember-me/internal/domain/ports"
+	"remember-me/internal/utils"
 )
 
 type UserService struct {
@@ -27,32 +27,26 @@ func (s *UserService) GetUserByEmail(email string) (models.User, error) {
 	return s.ur.GetUserByEmail(email)
 }
 
-func (s *UserService) CreateUser(user *models.UserDTO) error {
+func (s *UserService) CreateUser(user *models.User) error {
 
 	if err := user.Validate(); err != nil {
 		return err
 	}
 
-	exists := s.ur.ExistsByEmail(user.Email)
-
-	if exists {
-		return errors.New("user with this email already exists")
-	}
-
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	hashedPassword, err := utils.EncryptPassword(user.Password)
 	if err != nil {
 		return err
 	}
 
 	u := models.User{
 		Email:    user.Email,
-		Password: string(hashedPassword),
+		Password: hashedPassword,
 	}
 
 	return s.ur.CreateUser(&u)
 }
 
-func (s *UserService) UpdateUser(id int, user *models.UserDTO) error {
+func (s *UserService) UpdateUser(id int, user *models.User) error {
 	err := user.Validate()
 	if err != nil {
 		return err
