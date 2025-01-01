@@ -1,7 +1,6 @@
-package http
+package handlers
 
 import (
-	"errors"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -14,11 +13,13 @@ import (
 
 type UserHandler struct {
 	us *services.UserService
+	ss *services.SessionService
 }
 
-func NewUserHandler(us *services.UserService) *UserHandler {
+func NewUserHandler(us *services.UserService, ss *services.SessionService) *UserHandler {
 	return &UserHandler{
 		us: us,
+		ss: ss,
 	}
 }
 
@@ -42,7 +43,7 @@ func (uh *UserHandler) GetUser(c echo.Context) error {
 	user, err := uh.us.GetUserByEmail(user.Email)
 
 	if err != nil {
-		return c.String(404, "Not Found")
+		return c.String(404, "GetUser Not Found")
 	}
 	return c.Render(200, "user", user)
 }
@@ -66,6 +67,7 @@ func (uh *UserHandler) PostUser(c echo.Context) error {
 	if c.Request().Header.Get("HX-Request") != "" {
 		c.Response().Header().Set("HX-Redirect", "/login")
 	}
+
 	return c.NoContent(http.StatusOK)
 }
 
@@ -102,36 +104,49 @@ func (uh *UserHandler) UpdateUser(c echo.Context) error {
 func (uh *UserHandler) Login(c echo.Context) error {
 	var user models.User
 
+	session, err := c.Cookie("session_id")
+	if err == nil && session.Value != "" {
+		if c.Request().Header.Get("HX-Request") != "" {
+			c.Response().Header().Set("HX-Redirect", "/")
+		}
+	}
+
 	if err := c.Bind(&user); err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
 	u, err := uh.us.GetUserByEmail(user.Email)
+	passwordValid := utils.ComparePassword(user.Password, u.Password)
 
-	valid := utils.ComparePassword(user.Password, u.Password)
-
-	if !valid {
-		return errors.New("invalid password")
+	if err != nil || !passwordValid {
+		return c.String(http.StatusUnauthorized, models.ErrInvalidCredentials.Error())
 	}
 
-	token := uuid.NewString()
-	expiresAt := time.Now().Add(120 * time.Second)
-
-	//inmemory
-	models.Sessions[token] = models.Session{
-		UserID:    u.ID,
-		ExpiresAt: expiresAt,
-	}
-
-	c.SetCookie(&http.Cookie{
-		Name:    "session_token",
-		Value:   token,
-		Expires: expiresAt,
-	})
+	sessionID := uuid.NewString()
+	err = uh.ss.CreateSession(c.Request().Context(), sessionID, u.ID)
 
 	if err != nil {
 		return c.String(http.StatusUnauthorized, err.Error())
 	}
 
-	return c.String(http.StatusOK, token)
+	cookie := &http.Cookie{
+		Name:     "session_id",
+		Value:    sessionID,
+		HttpOnly: true,
+		Expires:  time.Now().Add(24 * time.Hour),
+	}
+	c.SetCookie(cookie)
+
+	return c.String(http.StatusOK, "Login successful! Welcome, "+coo.Value)
+}
+
+func (uh *UserHandler) Logout(c echo.Context) error {
+	sessionID, _ := c.Cookie("session_id")
+	err := uh.ss.InvalidateSession(c.Request().Context(), sessionID.Value)
+
+	if err != nil {
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	return c.String(http.StatusOK, "Logout successful!")
 }

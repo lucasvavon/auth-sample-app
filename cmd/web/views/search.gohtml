@@ -1,0 +1,33 @@
+{{ define "search" }}
+    {{ block "header" . }}{{ end }}
+    <body>
+    <div class="p-5">
+        <h1 class="max-w-sm mx-auto text-xl mb-10 font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
+            Search Engine
+        </h1>
+        <form class="max-w-sm mx-auto" id="search" hx-post="/search" hx-target="#error"
+              hx-swap="innerHTML" hx-ext="json-enc">
+            <div class="mb-5">
+                <label for="email" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your
+                    Search </label>
+                <input type="text" name="search" id="search"
+                       class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-orange-600 focus:border-orange-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                       placeholder="Soup recipe" required>
+            </div>
+            {{ template "error" . }}
+            <button type="submit"
+                    class="w-full mb-5 text-white bg-orange-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-orange-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">
+                Launch Search
+            </button>
+        </form>
+    </div>
+    <form id="logout" method="post" hx-post="/logout">
+        <button type="submit"
+                class="w-full mb-5 text-white bg-orange-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-orange-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">
+            Logout
+        </button>
+    </form>
+    </body>
+    {{ template "footer" . }}
+    {{ template "script" . }}
+{{ end }}
