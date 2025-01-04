@@ -5,18 +5,18 @@ import (
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"remember-me/internal/domain/models"
-	"remember-me/internal/domain/services"
+	"remember-me/internal/domain/usecases"
 	"remember-me/internal/utils"
 	"strconv"
 	"time"
 )
 
 type UserHandler struct {
-	us *services.UserService
-	ss *services.SessionService
+	us *usecases.UserService
+	ss *usecases.SessionService
 }
 
-func NewUserHandler(us *services.UserService, ss *services.SessionService) *UserHandler {
+func NewUserHandler(us *usecases.UserService, ss *usecases.SessionService) *UserHandler {
 	return &UserHandler{
 		us: us,
 		ss: ss,
@@ -34,7 +34,7 @@ func (uh *UserHandler) GetUsers(c echo.Context) error {
 }
 
 func (uh *UserHandler) GetUser(c echo.Context) error {
-	var user models.User
+	var user *models.User
 
 	if err := c.Bind(&user); err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
@@ -55,8 +55,9 @@ func (uh *UserHandler) PostUser(c echo.Context) error {
 		return c.String(500, err.Error())
 	}
 
-	exists := uh.us.ExistsByEmail(u.Email)
-	if exists {
+	user, _ := uh.us.GetUserByEmail(u.Email)
+
+	if user != nil {
 		return c.String(422, "user with this email already exists")
 	}
 
@@ -84,7 +85,7 @@ func (uh *UserHandler) DeleteUser(c echo.Context) error {
 }
 
 func (uh *UserHandler) UpdateUser(c echo.Context) error {
-	var user models.User
+	var user *models.User
 	id, _ := strconv.Atoi(c.Param("id"))
 
 	if err := c.Bind(&user); err != nil {
@@ -92,7 +93,7 @@ func (uh *UserHandler) UpdateUser(c echo.Context) error {
 	}
 
 	// Call the UserService to update the user.
-	err := uh.us.UpdateUser(id, &user)
+	err := uh.us.UpdateUser(id, user)
 	if err != nil {
 		// Handle errors, e.g., user not found or validation errors.
 		return c.String(422, err.Error())
@@ -102,14 +103,7 @@ func (uh *UserHandler) UpdateUser(c echo.Context) error {
 }
 
 func (uh *UserHandler) Login(c echo.Context) error {
-	var user models.User
-
-	session, err := c.Cookie("session_id")
-	if err == nil && session.Value != "" {
-		if c.Request().Header.Get("HX-Request") != "" {
-			c.Response().Header().Set("HX-Redirect", "/")
-		}
-	}
+	var user *models.User
 
 	if err := c.Bind(&user); err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
@@ -137,10 +131,15 @@ func (uh *UserHandler) Login(c echo.Context) error {
 	}
 	c.SetCookie(cookie)
 
-	return c.String(http.StatusOK, "Login successful! Welcome, "+coo.Value)
+	if c.Request().Header.Get("HX-Request") != "" {
+		c.Response().Header().Set("HX-Redirect", "/")
+	}
+
+	return c.NoContent(http.StatusOK)
 }
 
 func (uh *UserHandler) Logout(c echo.Context) error {
+
 	sessionID, _ := c.Cookie("session_id")
 	err := uh.ss.InvalidateSession(c.Request().Context(), sessionID.Value)
 
@@ -148,5 +147,19 @@ func (uh *UserHandler) Logout(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
-	return c.String(http.StatusOK, "Logout successful!")
+	expiredCookie := &http.Cookie{
+		Name:     "session_id",
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Unix(0, 0), // Set an expiration date in the past
+		MaxAge:   -1,              // Explicitly indicate that the cookie should be removed
+		HttpOnly: true,
+	}
+	c.SetCookie(expiredCookie)
+
+	if c.Request().Header.Get("HX-Request") != "" {
+		c.Response().Header().Set("HX-Redirect", "/login")
+	}
+
+	return c.NoContent(http.StatusOK)
 }

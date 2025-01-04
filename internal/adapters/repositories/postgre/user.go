@@ -38,18 +38,18 @@ func (r *GormUserRepository) GetUserByID(id int) (models.User, error) {
 	return user, nil
 }
 
-func (r *GormUserRepository) GetUserByEmail(email string) (models.User, error) {
+func (r *GormUserRepository) GetUserByEmail(email string) (*models.User, error) {
 	var user models.User
 
 	req := r.db.First(&user, "email = ?", email)
 
 	if req.Error != nil {
 		if errors.Is(req.Error, gorm.ErrRecordNotFound) {
-			return user, fmt.Errorf("user with email %s not found", email)
+			return nil, nil
 		}
-		return user, fmt.Errorf("error fetching user: %v", req.Error)
+		return nil, fmt.Errorf("error fetching user: %v", req.Error)
 	}
-	return user, nil
+	return &user, nil
 }
 
 func (r *GormUserRepository) CreateUser(user *models.User) error {
@@ -84,12 +84,4 @@ func (r *GormUserRepository) UpdateUser(id int, user *models.User) error {
 	}
 
 	return nil
-}
-
-func (r *GormUserRepository) ExistsByEmail(email string) bool {
-	var user models.User
-
-	req := r.db.First(&user, "email = ?", email)
-
-	return req.RowsAffected > 0
 }
