@@ -1,7 +1,7 @@
 package ports
 
 import (
-	"remember-me/internal/domain/models"
+	"auth-sample-app/internal/domain/models"
 )
 
 type UserRepository interface {

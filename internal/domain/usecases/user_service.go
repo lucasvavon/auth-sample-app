@@ -1,13 +1,11 @@
 package usecases
 
 import (
+	"auth-sample-app/internal/domain/models"
+	"auth-sample-app/internal/domain/ports"
+	"auth-sample-app/internal/utils"
 	"golang.org/x/crypto/bcrypt"
-	"remember-me/internal/domain/models"
-	"remember-me/internal/domain/ports"
-	"remember-me/internal/utils"
 )
-
-//go:generate mockgen -source=user_service.go -destination=mock/user_service.go
 
 type UserService struct {
 	ur ports.UserRepository

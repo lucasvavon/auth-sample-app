@@ -1,12 +1,12 @@
 package handlers
 
 import (
+	"auth-sample-app/internal/domain/models"
+	"auth-sample-app/internal/domain/usecases"
+	"auth-sample-app/internal/utils"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"net/http"
-	"remember-me/internal/domain/models"
-	"remember-me/internal/domain/usecases"
-	"remember-me/internal/utils"
 	"strconv"
 	"time"
 )

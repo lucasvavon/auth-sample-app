@@ -1,9 +1,9 @@
 package middlewares
 
 import (
+	"auth-sample-app/internal/domain/usecases"
 	"github.com/labstack/echo/v4"
 	"net/http"
-	"remember-me/internal/domain/usecases"
 )
 
 func AuthMiddleware(ss *usecases.SessionService) echo.MiddlewareFunc {

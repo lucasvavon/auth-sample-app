@@ -1,13 +1,13 @@
 package postgre
 
 import (
+	"auth-sample-app/internal/domain/models"
 	"fmt"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"log"
 	"os"
-	"remember-me/internal/domain/models"
 )
 
 type DB struct {

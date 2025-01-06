@@ -1,10 +1,10 @@
 package postgre
 
 import (
+	"auth-sample-app/internal/domain/models"
 	"errors"
 	"fmt"
 	"gorm.io/gorm"
-	"remember-me/internal/domain/models"
 )
 
 type GormUserRepository struct {
@@ -15,7 +15,7 @@ func NewGormUserRepository(db *gorm.DB) *GormUserRepository {
 	return &GormUserRepository{db}
 }
 
-func (r *GormUserRepository) GetUsers() (models.Users, error) {
+func (r *GormUserRepository) GetUsers() (*models.Users, error) {
 	var users models.Users
 
 	req := r.db.Find(&users)
@@ -23,19 +23,19 @@ func (r *GormUserRepository) GetUsers() (models.Users, error) {
 		return nil, errors.New(fmt.Sprintf("messages not found: %v", req.Error))
 	}
 
-	return users, nil
+	return &users, nil
 }
 
-func (r *GormUserRepository) GetUserByID(id int) (models.User, error) {
+func (r *GormUserRepository) GetUserByID(id int) (*models.User, error) {
 	var user models.User
 
 	req := r.db.First(&user, id)
 	if req.Error != nil {
 		// Use fmt.Errorf for error formatting and return the zero value of models.User.
-		return models.User{}, fmt.Errorf("user not found: %v", req.Error)
+		return &models.User{}, fmt.Errorf("user not found: %v", req.Error)
 	}
 
-	return user, nil
+	return &user, nil
 }
 
 func (r *GormUserRepository) GetUserByEmail(email string) (*models.User, error) {

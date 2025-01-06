@@ -1,2 +1,1 @@
-# remember-me
-# remember-me
+# Auth sample app with Hexagonal Architecture

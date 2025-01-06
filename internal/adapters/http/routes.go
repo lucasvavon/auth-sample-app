@@ -1,19 +1,39 @@
 package http
 
 import (
+	"auth-sample-app/internal/adapters/http/handlers"
+	"auth-sample-app/internal/adapters/http/middlewares"
+	"auth-sample-app/internal/domain/usecases"
 	"github.com/labstack/echo/v4"
-	"remember-me/internal/adapters/http/handlers"
-	"remember-me/internal/domain/usecases"
+	"net/http"
 )
 
-// TODO ALL usecases SERVICES, user_routes.go ....
-func InitRoutes(e *echo.Echo, s *usecases.UserService) {
+func InitRoutes(e *echo.Echo, us *usecases.UserService, ss *usecases.SessionService) {
 
-	userHandler := handlers.NewUserHandler(s)
-	e.GET("/users", userHandler.GetUsers)
-	e.GET("/users/:id", userHandler.GetUser)
-	e.POST("/users", userHandler.PostUser)
-	e.DELETE("/users/:id", userHandler.DeleteUser)
-	e.PUT("/users/:id", userHandler.UpdateUser)
+	userHandler := handlers.NewUserHandler(us, ss)
+	// Middleware for protected routes
+	protected := e.Group("", middlewares.AuthMiddleware(ss))
 
+	// Route => handler
+	protected.GET("/", func(c echo.Context) error { return c.Render(200, "index", nil) })
+	e.GET("/registration", func(c echo.Context) error {
+		return c.Render(200, "registration", nil)
+	})
+	e.POST("/registration", func(c echo.Context) error {
+		return userHandler.PostUser(c)
+	})
+	e.GET("/login", func(c echo.Context) error {
+		session, err := c.Cookie("session_id")
+		if err == nil && session.Value != "" {
+			return c.Redirect(http.StatusFound, "/")
+		}
+		return c.Render(200, "login", nil)
+
+	})
+	e.POST("/login", func(c echo.Context) error {
+		return userHandler.Login(c)
+	})
+	protected.POST("/logout", func(c echo.Context) error {
+		return userHandler.Logout(c)
+	})
 }

@@ -1,8 +1,8 @@
 package usecases
 
 import (
+	"auth-sample-app/internal/domain/ports"
 	"context"
-	"remember-me/internal/domain/ports"
 	"time"
 )
 
