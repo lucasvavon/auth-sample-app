@@ -42,7 +42,6 @@ spec:
         - name: env-file
           configMap:
             name: go-env
-      restartPolicy: Never
 status: { }
 ---
 apiVersion: apps/v1
