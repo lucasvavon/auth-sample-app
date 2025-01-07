@@ -28,33 +28,11 @@ spec:
       containers:
         - name: server
           image: lucasvavon/auth-sample-app
+          volumeMounts:
+            - name: env-file
+              mountPath: /.env
+              subPath: .env
           imagePullPolicy: Always
-          env:
-            - name: DB_HOST
-              valueFrom:
-                configMapKeyRef:
-                  name: go-app-env
-                  key: DB_HOST
-            - name: DB_PORT
-              valueFrom:
-                configMapKeyRef:
-                  name: go-app-env
-                  key: DB_PORT
-            - name: DB_USER
-              valueFrom:
-                configMapKeyRef:
-                  name: go-app-env
-                  key: DB_USER
-            - name: DB_PASSWORD
-              valueFrom:
-                configMapKeyRef:
-                  name: go-app-env
-                  key: DB_PASSWORD
-            - name: DB_NAME
-              valueFrom:
-                configMapKeyRef:
-                  name: go-app-env
-                  key: DB_NAME
           ports:
             - containerPort: 8080
               hostPort: 8080
@@ -63,8 +41,8 @@ spec:
       volumes:
         - name: env-file
           configMap:
-            name: go-app-env
-      restartPolicy: Always
+            name: go-env
+      restartPolicy: Never
 status: { }
 ---
 apiVersion: apps/v1
