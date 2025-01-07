@@ -1,0 +1,168 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    service: server
+  name: server
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: server
+  strategy: { }
+  template:
+    metadata:
+      labels:
+        service: server
+    spec:
+      initContainers:
+        - name: wait-for-db
+          image: busybox:1.28
+          command:
+            [
+              "sh",
+              "-c",
+              'until nc -zv db 5432; do echo "waiting for db"; sleep 2; done;',
+            ]
+      containers:
+        - name: server
+          image: lucasvavon/auth-sample-app
+          imagePullPolicy: Always
+          env:
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: go-app-env
+                  key: DB_HOST
+            - name: DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: go-app-env
+                  key: DB_PORT
+            - name: DB_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: go-app-env
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  name: go-app-env
+                  key: DB_PASSWORD
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: go-app-env
+                  key: DB_NAME
+          ports:
+            - containerPort: 8080
+              hostPort: 8080
+              protocol: TCP
+          resources: { }
+      volumes:
+        - name: env-file
+          configMap:
+            name: go-app-env
+      restartPolicy: Always
+status: { }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    service: db
+  name: db
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: db
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        service: db
+    spec:
+      containers:
+        - env:
+            - name: POSTGRES_DB
+              value: myapp
+            - name: POSTGRES_PASSWORD
+              value: admin
+            - name: POSTGRES_USER
+              value: admin
+          image: postgres
+          name: db
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+          resources: { }
+      restartPolicy: Always
+status: { }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: server
+  name: server
+  namespace: default
+spec:
+  type: NodePort
+  ports:
+    - name: "8080"
+      port: 8080
+      targetPort: 8080
+      nodePort: 30001
+  selector:
+    service: server
+status:
+  loadBalancer: { }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: db
+  name: db
+  namespace: default
+spec:
+  ports:
+    - name: "5432"
+      port: 5432
+      targetPort: 5432
+  selector:
+    service: db
+status:
+  loadBalancer: { }
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: db-persistent-volume
+  labels:
+    type: local
+    app: db
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 8Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "/data/db"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: db-persistent-volume-claim
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 8Gi

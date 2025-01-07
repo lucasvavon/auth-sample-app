@@ -16,7 +16,7 @@ type DB struct {
 
 func ConnectDb() *gorm.DB {
 
-	err := godotenv.Load()
+	err := godotenv.Load(".env")
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
@@ -38,9 +38,9 @@ func ConnectDb() *gorm.DB {
 
 	if err != nil {
 		fmt.Printf("Failed to connect to database! %s\n", dsn)
+	} else {
+		fmt.Println("Database connection successfully established")
 	}
-
-	fmt.Println("Database connection successfully established")
 
 	var ms = []interface{}{&models.User{}}
 
