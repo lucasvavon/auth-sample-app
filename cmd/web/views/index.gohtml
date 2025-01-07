@@ -1,0 +1,18 @@
+{{ define "index" }}
+    {{ block "header" . }}{{ end }}
+    <body>
+    <div class="p-5">
+        <h1 class="max-w-sm mx-auto text-xl mb-10 font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
+            WELCOME TO THE HOME PAGE
+        </h1>
+    </div>
+    <form id="logout" method="post" hx-post="/logout">
+        <button type="submit"
+                class="w-full mb-5 text-white bg-orange-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-orange-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">
+            Logout
+        </button>
+    </form>
+    </body>
+    {{ template "footer" . }}
+    {{ template "script" . }}
+{{ end }}

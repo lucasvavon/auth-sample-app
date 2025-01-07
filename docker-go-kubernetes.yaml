@@ -28,20 +28,15 @@ spec:
       containers:
         - name: server
           image: lucasvavon/auth-sample-app
-          volumeMounts:
-            - name: env-file
-              mountPath: /.env
-              subPath: .env
+          envFrom:
+            - configMapRef:
+                name: go-app-env
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
               hostPort: 8080
               protocol: TCP
           resources: { }
-      volumes:
-        - name: env-file
-          configMap:
-            name: go-env
 status: { }
 ---
 apiVersion: apps/v1
@@ -64,15 +59,17 @@ spec:
         service: db
     spec:
       containers:
-        - env:
-            - name: POSTGRES_DB
-              value: myapp
-            - name: POSTGRES_PASSWORD
-              value: admin
+        - name: db
+          image: postgres
+          env:
             - name: POSTGRES_USER
               value: admin
-          image: postgres
-          name: db
+            - name: POSTGRES_PASSWORD
+              value: admin
+            - name: POSTGRES_DB
+              value: myapp
+            - name: DATABASE_URL
+              value: "postgres://admin:admin@db:5432/myapp"
           ports:
             - containerPort: 5432
               protocol: TCP
@@ -108,8 +105,7 @@ metadata:
   namespace: default
 spec:
   ports:
-    - name: "5432"
-      port: 5432
+    - port: 5432
       targetPort: 5432
   selector:
     service: db
