@@ -68,8 +68,6 @@ spec:
               value: admin
             - name: POSTGRES_DB
               value: myapp
-            - name: DATABASE_URL
-              value: "postgres://admin:admin@db:5432/myapp"
           ports:
             - containerPort: 5432
               protocol: TCP

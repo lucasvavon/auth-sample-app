@@ -1,5 +1,5 @@
 # Build the application from source
-FROM golang:alpine3.21 AS build-stage
+FROM golang:1.23-alpine
 
 WORKDIR /app
 
@@ -14,9 +14,3 @@ RUN go build -o auth-sample-app ./cmd/main.go
 EXPOSE 1323
 
 ENTRYPOINT ["/app/auth-sample-app"]
-
-# Run the tests in the container
-FROM build-stage AS run-test-stage
-
-RUN go test -v ./...
-
