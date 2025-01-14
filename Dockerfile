@@ -1,5 +1,5 @@
 # Build the application from source
-FROM golang:1.23-alpine
+FROM golang:1.23.4-alpine3.21
 
 WORKDIR /app
 
