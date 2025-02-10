@@ -9,6 +9,7 @@ RUN go mod download
 
 # Copier le reste du code source et compiler l'application
 COPY . .
+
 RUN go build -o main .
 
 # Image finale

@@ -12,28 +12,17 @@ type Templates struct {
 }
 
 func (t *Templates) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
-	if data == nil {
-		data = map[string]interface{}{}
+	if dataMap, ok := data.(map[string]interface{}); ok {
+		dataMap["userID"] = c.Get("userID")
 	}
 
-	dataMap, ok := data.(map[string]interface{})
-	if !ok {
-		return fmt.Errorf("template data must be a map[string]interface{}")
-	}
-
-	// global variables to render context
-	dataMap["userID"] = c.Get("userID")
-
-	return t.templates.ExecuteTemplate(w, name, dataMap)
+	return t.templates.ExecuteTemplate(w, name, data)
 }
 
-func NewTemplate() *Templates {
-
+func NewTemplate() (*Templates, error) {
 	tmpl, err := template.ParseGlob("web/views/*.gohtml")
 	if err != nil {
-		fmt.Printf("Error loading templates: %v", err)
+		return nil, fmt.Errorf("error loading templates: %w", err)
 	}
-	return &Templates{
-		templates: tmpl,
-	}
+	return &Templates{templates: tmpl}, nil
 }
