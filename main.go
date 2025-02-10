@@ -15,8 +15,8 @@ func main() {
 	// Echo instance
 	e := echo.New()
 	e.Renderer, _ = views.NewTemplate()
-	e.Static("/images", "/web/assets/images")
-	e.Static("/css", "/web/assets/css")
+	e.Static("/images", "web/assets/images")
+	e.Static("/css", "web/assets/css")
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
