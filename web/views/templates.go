@@ -29,7 +29,7 @@ func (t *Templates) Render(w io.Writer, name string, data interface{}, c echo.Co
 
 func NewTemplate() *Templates {
 
-	tmpl, err := template.ParseGlob("cmd/web/views/*.gohtml")
+	tmpl, err := template.ParseGlob("web/views/*.gohtml")
 	if err != nil {
 		fmt.Printf("Error loading templates: %v", err)
 	}

@@ -1,11 +1,11 @@
 package main
 
 import (
-	"auth-sample-app/cmd/web/views"
 	routes "auth-sample-app/internal/adapters/http"
 	"auth-sample-app/internal/adapters/repositories/postgre"
 	"auth-sample-app/internal/adapters/repositories/redis"
 	"auth-sample-app/internal/domain/usecases"
+	"auth-sample-app/web/views"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
@@ -15,8 +15,8 @@ func main() {
 	// Echo instance
 	e := echo.New()
 	e.Renderer = views.NewTemplate()
-	e.Static("/images", "/cmd/web/assets/images")
-	e.Static("/css", "/cmd/web/assets/css")
+	e.Static("/images", "/web/assets/images")
+	e.Static("/css", "/web/assets/css")
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 

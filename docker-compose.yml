@@ -1,9 +1,9 @@
-version: "3.9"
-
 services:
   app:
     image: lucasvavon/auth-sample-app:latest
     container_name: auth-sample-app
+    environment:
+      DATABASE_URL: "postgresql://admin:admin@db:5432/myapp"
     ports:
       - "1323:1323"
 
