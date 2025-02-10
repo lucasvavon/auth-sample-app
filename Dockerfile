@@ -11,7 +11,7 @@ COPY . .
 
 ENV DATABASE_URL="postgresql://admin:admin@db:5432/myapp"
 
-RUN go build -o auth-sample-app ./cmd/main.go
+RUN go build -o auth-sample-app ./main.go
 
 EXPOSE 1323
 
