@@ -1,19 +1,17 @@
 package models
 
 import (
+	"gorm.io/gorm"
 	"net/mail"
 	"strings"
-	"time"
 )
 
 type (
 	User struct {
-		ID              int       `json:"id" gorm:"primaryKey"`
-		Email           string    `json:"email" gorm:"unique;not null"`
-		Password        string    `json:"password" gorm:"not null"`
-		ConfirmPassword string    `json:"confirm-password" gorm:"-"`
-		CreatedAt       time.Time `json:"created_at"`
-		UpdatedAt       time.Time `json:"updated_at"`
+		gorm.Model
+		Email           string `json:"email" gorm:"unique;not null"`
+		Password        string `json:"password" gorm:"not null"`
+		ConfirmPassword string `json:"confirm-password" gorm:"-"`
 	}
 
 	Users []User

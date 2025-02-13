@@ -17,7 +17,7 @@ func NewRedisSessionRepository() *RedisSessionRepository {
 	return &RedisSessionRepository{client: client}
 }
 
-func (r *RedisSessionRepository) SaveSession(ctx context.Context, sessionID string, userID int, ttl time.Duration) error {
+func (r *RedisSessionRepository) SaveSession(ctx context.Context, sessionID string, userID uint, ttl time.Duration) error {
 	return r.client.Set(ctx, sessionID, userID, ttl).Err()
 }
 

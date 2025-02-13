@@ -26,7 +26,7 @@ func (r *GormUserRepository) GetUsers() (*models.Users, error) {
 	return &users, nil
 }
 
-func (r *GormUserRepository) GetUserByID(id int) (*models.User, error) {
+func (r *GormUserRepository) GetUserByID(id uint) (*models.User, error) {
 	var user models.User
 
 	req := r.db.First(&user, id)
@@ -62,7 +62,7 @@ func (r *GormUserRepository) CreateUser(user *models.User) error {
 	return nil
 }
 
-func (r *GormUserRepository) DeleteUser(id int) error {
+func (r *GormUserRepository) DeleteUser(id uint) error {
 	var user models.User
 
 	req := r.db.Unscoped().Delete(&user, &id)
@@ -74,7 +74,7 @@ func (r *GormUserRepository) DeleteUser(id int) error {
 	return nil
 }
 
-func (r *GormUserRepository) UpdateUser(id int, user *models.User) error {
+func (r *GormUserRepository) UpdateUser(id uint, user *models.User) error {
 	user.ID = id
 
 	req := r.db.Save(user)

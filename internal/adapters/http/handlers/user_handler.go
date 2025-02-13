@@ -75,7 +75,7 @@ func (uh *UserHandler) PostUser(c echo.Context) error {
 func (uh *UserHandler) DeleteUser(c echo.Context) error {
 	id, _ := strconv.Atoi(c.Param("id"))
 
-	err := uh.us.DeleteUser(id)
+	err := uh.us.DeleteUser(uint(id))
 
 	if err != nil {
 		return c.String(500, "Internal Server Error")
@@ -93,7 +93,7 @@ func (uh *UserHandler) UpdateUser(c echo.Context) error {
 	}
 
 	// Call the UserService to update the user.
-	err := uh.us.UpdateUser(id, user)
+	err := uh.us.UpdateUser(uint(id), user)
 	if err != nil {
 		// Handle errors, e.g., user not found or validation errors.
 		return c.String(422, err.Error())

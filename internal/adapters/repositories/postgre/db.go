@@ -36,11 +36,12 @@ func ConnectDb() *gorm.DB {
 		fmt.Println("Database connection successfully established")
 	}
 
-	var ms = []interface{}{&models.User{}}
+	db.Exec("CREATE TYPE frequency AS ENUM ('annual', 'monthly', 'weekly', 'daily');")
+	db.Exec("CREATE TYPE trans_type AS ENUM ('income', 'expense');")
 
-	errMigra := db.AutoMigrate(ms...)
+	errMi := db.AutoMigrate(&models.User{}, &models.Category{}, &models.Transaction{})
 
-	if errMigra != nil {
+	if errMi != nil {
 		fmt.Printf("Failed to migrate database! %s\n", dsn)
 	}
 

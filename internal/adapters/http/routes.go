@@ -15,7 +15,13 @@ func InitRoutes(e *echo.Echo, us *usecases.UserService, ss *usecases.SessionServ
 	protected := e.Group("", middlewares.AuthMiddleware(ss))
 
 	// Route => handler
-	protected.GET("/", func(c echo.Context) error { return c.Render(200, "index", nil) })
+	protected.GET("/", func(c echo.Context) error {
+		userID := c.Get("userID")
+		data := map[string]interface{}{
+			"userID": userID,
+		}
+		return c.Render(200, "index", data)
+	})
 	e.GET("/registration", func(c echo.Context) error {
 		return c.Render(200, "registration", nil)
 	})

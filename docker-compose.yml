@@ -1,12 +1,4 @@
 services:
-  app:
-    image: lucasvavon/auth-sample-app:latest
-    container_name: auth-sample-app
-    environment:
-      DATABASE_URL: "postgresql://admin:admin@db:5432/myapp"
-    ports:
-      - "1323:1323"
-
 
   redis:
     image: redis/redis-stack:latest
@@ -15,8 +7,8 @@ services:
       - "6379:6379"
 
   adminer:
-    image: adminer:latest
-    container_name: adminer
+    image: ghcr.io/shyim/adminerevo:latest
+    container_name: adminerevo
     ports:
       - "8080:8080"
 

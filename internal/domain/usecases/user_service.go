@@ -19,7 +19,7 @@ func (s *UserService) GetUsers() (*models.Users, error) {
 	return s.ur.GetUsers()
 }
 
-func (s *UserService) GetUserByID(id int) (*models.User, error) {
+func (s *UserService) GetUserByID(id uint) (*models.User, error) {
 	return s.ur.GetUserByID(id)
 }
 
@@ -46,7 +46,7 @@ func (s *UserService) CreateUser(user *models.User) error {
 	return s.ur.CreateUser(&u)
 }
 
-func (s *UserService) UpdateUser(id int, user *models.User) error {
+func (s *UserService) UpdateUser(id uint, user *models.User) error {
 	err := user.Validate()
 	if err != nil {
 		return err
@@ -65,6 +65,6 @@ func (s *UserService) UpdateUser(id int, user *models.User) error {
 	return s.ur.UpdateUser(id, &u)
 }
 
-func (s *UserService) DeleteUser(id int) error {
+func (s *UserService) DeleteUser(id uint) error {
 	return s.ur.DeleteUser(id)
 }

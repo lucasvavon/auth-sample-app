@@ -14,7 +14,7 @@ func NewSessionService(rs ports.SessionRepository) *SessionService {
 	return &SessionService{rs: rs}
 }
 
-func (s *SessionService) CreateSession(ctx context.Context, sessionID string, userID int) error {
+func (s *SessionService) CreateSession(ctx context.Context, sessionID string, userID uint) error {
 	ttl := 24 * time.Hour
 	return s.rs.SaveSession(ctx, sessionID, userID, ttl)
 }
